@@ -3,12 +3,7 @@ var router = express.Router();
 var multer = require('multer');
 var mongoose = require('mongoose');
 var fs = require('fs');
-// var storage = multer.diskStorage({
-// 	destination:'/uploads/',
-// 	filename: function(req,file,callback){
-// 		callback(null,filename.originalname)
-// 	}
-// })
+
 
 var imageSchema = mongoose.Schema({
 	user:{
@@ -31,18 +26,6 @@ var imageSchema = mongoose.Schema({
 
 var SingleImage = mongoose.model('image', imageSchema);
 
-
-
-// var storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, '/uploads')
-//   },
-//   filename: function (req, file, cb) {
-//     cb(null, file.fieldname + '-' + Date.now())
-//   }
-// });
-
-// var upload = multer({ storage: storage });
 
 exports.connection = function(req,res){
 	// res.send('Application is up and running');
@@ -94,7 +77,8 @@ exports.getAllImages = function(req,res){
 					// var contentData = fs.readFileSync(record.path);
 					var results = {};
 					results['filename'] = record.originalname;
-					results['path'] = record.path;
+					var finalPath = record.path.replace('public','');
+					results['path'] = finalPath;
 					finalResults.push(results);	
 
 				}
@@ -110,4 +94,8 @@ exports.getAllImages = function(req,res){
 			// res.send(finalResults);
 			}
 	})
+}
+
+exports.redirect = function(req,res){
+	res.render('../views/index.ejs');
 }
