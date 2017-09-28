@@ -11,6 +11,10 @@ var mongoose = require('mongoose');
 // })
 
 var imageSchema = mongoose.Schema({
+	user:{
+		type: String,
+		default: 'guest'
+	},
 	path:{
 		type: String,
 		required: true
@@ -18,12 +22,25 @@ var imageSchema = mongoose.Schema({
 	originalname:{
 		type: String,
 		required: true
+	},
+	created:{
+		type: Date,
+		default: Date.now
 	}
 });
 
 var SingleImage = mongoose.model('image', imageSchema);
 
-var upload = multer({ dest: 'uploads/' });
+// var storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, '/uploads')
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, file.fieldname + '-' + Date.now())
+//   }
+// });
+
+// var upload = multer({ storage: storage });
 
 exports.connection = function(req,res){
 	// res.send('Application is up and running');
@@ -39,7 +56,37 @@ exports.uploadImage = function(req,res){
 		var imagePath = {}
 		imagePath['path'] = req.file.path;
 		imagePath['originalname'] = req.file.originalname;
-		res.send("File uploaded "+imagePath['originalname']);
+		addImage(imagePath, function(err,data){
+			if(err){
+				res.send('Problem in uploading File');
+			}
+			else{
+				res.send("File uploaded "+imagePath['originalname']);
+			}
+		})
+		
 	}
 
+}
+
+function addImage(imagePath, callback){
+	SingleImage.create(imagePath, function(err,data){
+		if(err){
+			callback(err,null);
+		}
+		else{
+			callback(null,data);
+		}
+	})
+}
+
+exports.getAllImages = function(req,res){
+	SingleImage.find().sort({'created':-1}).exec(function(err,data){
+		if(err){
+			res.send('Some Problem');
+		}
+		else{
+			res.send(data);
+		}
+	})
 }
