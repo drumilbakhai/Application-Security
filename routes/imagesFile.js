@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var multer = require('multer');
 var mongoose = require('mongoose');
-
+var fs = require('fs');
 // var storage = multer.diskStorage({
 // 	destination:'/uploads/',
 // 	filename: function(req,file,callback){
@@ -30,6 +30,8 @@ var imageSchema = mongoose.Schema({
 });
 
 var SingleImage = mongoose.model('image', imageSchema);
+
+
 
 // var storage = multer.diskStorage({
 //   destination: function (req, file, cb) {
@@ -86,7 +88,26 @@ exports.getAllImages = function(req,res){
 			res.send('Some Problem');
 		}
 		else{
-			res.send(data);
-		}
+			var finalResults = [];
+			data.forEach(function(record){
+				try{
+					// var contentData = fs.readFileSync(record.path);
+					var results = {};
+					results['filename'] = record.originalname;
+					results['path'] = record.path;
+					finalResults.push(results);	
+
+				}
+				catch(err){
+					results['filename'] = undefined;
+					results['contentData'] = undefined
+				}
+				
+
+			})
+			console.log(finalResults);
+			res.render("../views/display.ejs", {title: 'Image', link:finalResults});
+			// res.send(finalResults);
+			}
 	})
 }
