@@ -21,6 +21,10 @@ var imageSchema = mongoose.Schema({
 	created:{
 		type: Date,
 		default: Date.now
+	},
+	caption:{
+		type: String,
+		default: 'No Caption Inserted'
 	}
 });
 
@@ -28,7 +32,6 @@ var SingleImage = mongoose.model('image', imageSchema);
 
 
 exports.connection = function(req,res){
-	// res.send('Application is up and running');
 	res.render('../views/index.ejs');
 };
 
@@ -41,6 +44,7 @@ exports.uploadImage = function(req,res){
 		var imagePath = {}
 		imagePath['path'] = req.file.path;
 		imagePath['originalname'] = req.file.originalname;
+		imagePath['caption'] = req.body.caption;
 		addImage(imagePath, function(err,data){
 			if(err){
 				res.send('Problem in uploading File');
@@ -77,6 +81,7 @@ exports.getAllImages = function(req,res){
 					// var contentData = fs.readFileSync(record.path);
 					var results = {};
 					results['filename'] = record.originalname;
+					results['caption'] = record.caption;
 					var finalPath = record.path.replace('public','');
 					results['path'] = finalPath;
 					finalResults.push(results);	
@@ -91,7 +96,38 @@ exports.getAllImages = function(req,res){
 			})
 			console.log(finalResults);
 			res.render("../views/display.ejs", {title: 'Image', link:finalResults});
-			// res.send(finalResults);
+			
+			}
+	})
+}
+
+exports.getImagesByUser = function(req,res){
+	SingleImage.find({'user':req.params.user}).sort({'created':-1}).exec(function(err,data){
+		if(err){
+			res.send('Some Problem');
+		}
+		else{
+			var finalResults = [];
+			data.forEach(function(record){
+				try{
+					// var contentData = fs.readFileSync(record.path);
+					var results = {};
+					results['filename'] = record.originalname;
+					var finalPath = record.path.replace('public','');
+					results['path'] = finalPath;
+					finalResults.push(results);	
+
+				}
+				catch(err){
+					results['filename'] = undefined;
+					results['contentData'] = undefined
+				}
+				
+
+			})
+			console.log(finalResults);
+			res.render("../views/display.ejs", {title: 'Image', link:finalResults});
+			
 			}
 	})
 }

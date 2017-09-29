@@ -40,7 +40,10 @@ app.route('/')
 // app.use(bodyParser.json());
 
 app.route('/images')
-	.get(routes.getAllImages)
+	.get(routes.getAllImages);
+
+app.route('/images/:user')
+	.get(routes.getImagesByUser);
 
 app.route('/redirect')
    .get(routes.redirect);
