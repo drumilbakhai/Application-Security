@@ -1,6 +1,7 @@
 <ul class="list-group">  
-  <% students.forEach( function( student ) { %>
-      <li class="list-group-item"><%= student.name %></li>
+  <% images.forEach( function( images ) { %>
+      <img src=<%=images.path%> width =400px height = 200px>
+      <h5><%=images.caption%> </h5>
   <% }) %>
 </ul>
 
@@ -31,3 +32,4 @@
   <% } %>
 </ul>  
 <% } %> 
+<a href = "/"> Upload More Images </a>  

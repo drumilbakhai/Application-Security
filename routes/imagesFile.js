@@ -4,7 +4,7 @@ var multer = require('multer');
 var mongoose = require('mongoose');
 var fs = require('fs');
 
-
+mongoose.set('debug', true);
 var imageSchema = mongoose.Schema({
 	user:{
 		type: String,
@@ -50,6 +50,7 @@ exports.uploadImage = function(req,res){
 				res.send('Problem in uploading File');
 			}
 			else{
+				// TODO: Add a view file to display success message
 				res.send("File uploaded "+imagePath['originalname']);
 			}
 		})
@@ -70,66 +71,13 @@ function addImage(imagePath, callback){
 }
 
 exports.getAllImages = function(req,res){
-	SingleImage.find().sort({'created':-1}).exec(function(err,data){
-		if(err){
-			res.send('Some Problem');
-		}
-		else{
-			var finalResults = [];
-			data.forEach(function(record){
-				try{
-					// var contentData = fs.readFileSync(record.path);
-					var results = {};
-					results['filename'] = record.originalname;
-					results['caption'] = record.caption;
-					var finalPath = record.path.replace('public','');
-					results['path'] = finalPath;
-					finalResults.push(results);	
-
-				}
-				catch(err){
-					results['filename'] = undefined;
-					results['contentData'] = undefined
-				}
-				
-
-			})
-			console.log(finalResults);
-			res.render("../views/display.ejs", {title: 'Image', link:finalResults});
-			
-			}
-	})
+	customPagination(req,res);
 }
 
 exports.getImagesByUser = function(req,res){
-	SingleImage.find({'user':req.params.user}).sort({'created':-1}).exec(function(err,data){
-		if(err){
-			res.send('Some Problem');
-		}
-		else{
-			var finalResults = [];
-			data.forEach(function(record){
-				try{
-					// var contentData = fs.readFileSync(record.path);
-					var results = {};
-					results['filename'] = record.originalname;
-					var finalPath = record.path.replace('public','');
-					results['path'] = finalPath;
-					finalResults.push(results);	
-
-				}
-				catch(err){
-					results['filename'] = undefined;
-					results['contentData'] = undefined
-				}
-				
-
-			})
-			console.log(finalResults);
-			res.render("../views/display.ejs", {title: 'Image', link:finalResults});
-			
-			}
-	})
+	var user = req.params.user;
+	customPagination(req,res,user);
+	
 }
 
 exports.redirect = function(req,res){
@@ -137,7 +85,18 @@ exports.redirect = function(req,res){
 }
 
 exports.displayPagination= function(req, res){
+	customPagination(req,res);
+}
 
+function customPagination(req,res,user){
+	var query = {};
+	if(!user){
+		query={};
+	}
+	else{
+		query['user'] = user
+	}
+	
 	var pageSize = 10,
 	    currentPage = 1,
 		images = [],
@@ -151,18 +110,26 @@ exports.displayPagination= function(req, res){
    		}
    		else{
    			var totalImages = count;
+   			var pageCount = Math.ceil(totalImages / pageSize);
    			console.log('Total Images are '+totalImages)
-
-   			SingleImage.find({}, ["-_id","path","user","caption"], function(err,data){
+   			console.log("Query is "+query);
+   			SingleImage.find(query, ["-_id","path","user","caption"]).sort({'created':-1}).exec(function(err,data){
    				if(err){
    					console.log('Problem in retrieving Images '+err)
    				}
    				else{
    					// console.log(data);
    					data.forEach(function(record){
-   						images.push(record);
+   						var results = {};
+   						results['user'] = record.user;
+						results['caption'] = record.caption;
+						var finalPath = record.path.replace('public','');
+						results['path'] = finalPath;
+						// finalResults.push(results);	
+   						images.push(results);
+
    					})
-   					// console.log(images);
+   					// res.send(images);
    					while(images.length > 0){
    						imagesArrays.push(images.splice(0,pageSize))
    					}
@@ -170,9 +137,16 @@ exports.displayPagination= function(req, res){
    					if (typeof req.query.page !== 'undefined') {
 				        currentPage = +req.query.page;
 				    }
-				    
+
    					imagesList = imagesArrays[+currentPage -1];
-   					res.send(imagesList);
+   					// res.send(imagesList);
+   					res.render('../views/pagination.ejs',{
+   						images: imagesList,
+	   					pageSize: pageSize,
+				        totalImages: totalImages,
+				        pageCount: pageCount,
+				        currentPage: currentPage
+				    });
 
    				}
 
@@ -181,8 +155,31 @@ exports.displayPagination= function(req, res){
    		}
    	})
 
-     
-        
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
    /*   var pageCount = totalImages/8,
         
         students = [],
@@ -215,4 +212,3 @@ exports.displayPagination= function(req, res){
         pageCount: pageCount,
         currentPage: currentPage
     }); */
-}
