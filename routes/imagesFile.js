@@ -138,17 +138,59 @@ exports.redirect = function(req,res){
 
 exports.displayPagination= function(req, res){
 
+	var pageSize = 10,
+	    currentPage = 1,
+		images = [],
+		imagesArrays = [],
+		imagesList = [];
     //set default variables
-    var totalStudents = 70,
-        pageSize = 8,
-        pageCount = totalStudents/8,
-        currentPage = 1,
+
+   	SingleImage.count({}, function(err,count){
+   		if(err){
+   			console.log('err')
+   		}
+   		else{
+   			var totalImages = count;
+   			console.log('Total Images are '+totalImages)
+
+   			SingleImage.find({}, ["-_id","path","user","caption"], function(err,data){
+   				if(err){
+   					console.log('Problem in retrieving Images '+err)
+   				}
+   				else{
+   					// console.log(data);
+   					data.forEach(function(record){
+   						images.push(record);
+   					})
+   					// console.log(images);
+   					while(images.length > 0){
+   						imagesArrays.push(images.splice(0,pageSize))
+   					}
+   					console.log('Images Aray splicer '+imagesArrays);
+   					if (typeof req.query.page !== 'undefined') {
+				        currentPage = +req.query.page;
+				    }
+				    
+   					imagesList = imagesArrays[+currentPage -1];
+   					res.send(imagesList);
+
+   				}
+
+   			})
+
+   		}
+   	})
+
+     
+        
+   /*   var pageCount = totalImages/8,
+        
         students = [],
         studentsArrays = [], 
         studentsList = [];
 
     //genreate list of students
-    for (var i = 1; i < totalStudents; i++) {
+    for (var i = 1; i < totalImages; i++) {
         students.push({name: 'Student Number ' + i});
     }
 
@@ -169,8 +211,8 @@ exports.displayPagination= function(req, res){
     res.render('../views/pagination.ejs', {
         students: studentsList,
         pageSize: pageSize,
-        totalStudents: totalStudents,
+        totalImages: totalImages,
         pageCount: pageCount,
         currentPage: currentPage
-    });
+    }); */
 }
