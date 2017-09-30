@@ -135,3 +135,42 @@ exports.getImagesByUser = function(req,res){
 exports.redirect = function(req,res){
 	res.render('../views/index.ejs');
 }
+
+exports.displayPagination= function(req, res){
+
+    //set default variables
+    var totalStudents = 70,
+        pageSize = 8,
+        pageCount = totalStudents/8,
+        currentPage = 1,
+        students = [],
+        studentsArrays = [], 
+        studentsList = [];
+
+    //genreate list of students
+    for (var i = 1; i < totalStudents; i++) {
+        students.push({name: 'Student Number ' + i});
+    }
+
+    //split list into groups
+    while (students.length > 0) {
+        studentsArrays.push(students.splice(0, pageSize));
+    }
+
+    //set current page if specifed as get variable (eg: /?page=2)
+    if (typeof req.query.page !== 'undefined') {
+        currentPage = +req.query.page;
+    }
+
+    //show list of students from group
+    studentsList = studentsArrays[+currentPage - 1];
+
+    //render index.ejs view file
+    res.render('../views/pagination.ejs', {
+        students: studentsList,
+        pageSize: pageSize,
+        totalStudents: totalStudents,
+        pageCount: pageCount,
+        currentPage: currentPage
+    });
+}

@@ -48,5 +48,8 @@ app.route('/images/:user')
 app.route('/redirect')
    .get(routes.redirect);
 
+app.route('/pagination')
+   .get(routes.displayPagination);
+
 app.listen(port);
 console.log('Server Started on '+port);
